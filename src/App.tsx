@@ -84,8 +84,22 @@ export default function App() {
         cacheBust: true,
       });
 
+      // Generate a unique filename from the quote (up to 3 words + unique ID)
+      let filename = 'bll-quote';
+      if (activeQuote) {
+        const words = activeQuote
+          .replace(/[^\w\s]/g, '') // remove punctuation
+          .split(/\s+/) // split by whitespace
+          .filter(w => w.length > 0)
+          .slice(0, 3) // take first 3 words
+          .join('-');
+        
+        const uniqueId = Math.random().toString(36).substring(2, 7);
+        filename = words ? `${words}-${uniqueId}`.toLowerCase() : `bll-quote-${uniqueId}`;
+      }
+
       const link = document.createElement('a');
-      link.download = 'editorial-quote.png';
+      link.download = `${filename}.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
