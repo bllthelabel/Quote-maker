@@ -63,8 +63,8 @@ export const QuotePreview = forwardRef<HTMLDivElement, QuotePreviewProps>(
           />
         )}
 
-        {/* Subtle Overlay to ensure readability */}
-        <div className="absolute inset-0 bg-black/20" />
+        {/* Stronger Overlay to ensure readability */}
+        <div className="absolute inset-0 bg-black/40" />
 
         {/* Content Container - Increased vertical padding for IG safe zones */}
         <div className="absolute inset-0 px-8 py-20 flex flex-col z-10">
@@ -73,7 +73,7 @@ export const QuotePreview = forwardRef<HTMLDivElement, QuotePreviewProps>(
           <div className="flex-1 flex flex-col justify-center items-center w-full gap-4 md:gap-6 overflow-hidden text-center">
             <div className="max-w-[95%]">
               <p className={cn(
-                "font-serif text-[#E2D06B] leading-[1.3] tracking-tight drop-shadow-md",
+                "font-serif text-[#E2D06B] leading-[1.3] tracking-tight drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]",
                 getFontSizeClass(quote || "")
               )}>
                 {renderQuote()}
@@ -82,7 +82,7 @@ export const QuotePreview = forwardRef<HTMLDivElement, QuotePreviewProps>(
           </div>
 
           {/* Footer */}
-          <div className="absolute bottom-6 left-8 right-8 flex justify-between items-center text-[#E2D06B]">
+          <div className="absolute bottom-6 left-8 right-8 flex justify-between items-center text-[#E2D06B] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
             <div className="flex items-center gap-1.5 cursor-pointer">
               <Bookmark className="w-4 h-4" />
               <span className="text-[10px] font-bold tracking-widest uppercase">Save</span>
