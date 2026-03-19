@@ -6,7 +6,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toPng } from 'html-to-image';
 import { Download, Loader2, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
-import { analyzeQuote, generateBackgroundImage } from './services/geminiService';
+import { analyzeQuote } from './services/geminiService';
+import { fetchUnsplashImages } from './services/unsplashService';
 import { QuotePreview } from './components/QuotePreview';
 
 export default function App() {
@@ -14,10 +15,12 @@ export default function App() {
   const [activeQuote, setActiveQuote] = useState('');
   const [italicWord, setItalicWord] = useState('');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageOptions, setImageOptions] = useState<string[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingText, setLoadingText] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
+  const [hasUnsplashKey, setHasUnsplashKey] = useState<boolean | null>(null);
   
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -25,6 +28,9 @@ export default function App() {
     // Check if the API key is present in the environment variables
     const key = process.env.GEMINI_API_KEY || process.env.API_KEY;
     setHasApiKey(!!key && key !== 'undefined' && key !== 'null' && key.length > 10);
+
+    const unsplashKey = process.env.UNSPLASH_ACCESS_KEY;
+    setHasUnsplashKey(!!unsplashKey && unsplashKey !== 'undefined' && unsplashKey !== 'null' && unsplashKey.length > 10);
   }, []);
 
   const handleGenerate = async (e: React.FormEvent) => {
@@ -44,16 +50,19 @@ export default function App() {
       setItalicWord(analysis.italicWord || '');
 
       // 2. Generate Image
-      setLoadingText('Generating aesthetic image (this can take up to 60 seconds)...');
-      const bgImage = await generateBackgroundImage(analysis.imagePrompt || 'A beautiful minimalist aesthetic background');
-      setImageUrl(bgImage);
+      setLoadingText('Fetching aesthetic backgrounds from Unsplash...');
+      const bgImages = await fetchUnsplashImages(analysis.imagePrompt || 'minimalist aesthetic background', 3);
+      setImageOptions(bgImages);
+      setImageUrl(bgImages[0]); // Set the first one as default
     } catch (err: any) {
       console.error('Generation error:', err);
       let errorMessage = err.message || "Failed to generate the post. Please try again.";
       
       // Check if it's a JSON error from the API
       if (errorMessage.includes("API key not valid")) {
-        errorMessage = "Your API key is invalid or missing. Please check your AI Studio settings (⚙️ gear icon -> Secrets) and ensure you have set a valid GEMINI_API_KEY.";
+        errorMessage = "Your Gemini API key is invalid or missing. Please check your AI Studio settings (⚙️ gear icon -> Secrets) and ensure you have set a valid GEMINI_API_KEY.";
+      } else if (errorMessage.includes("UNSPLASH_ACCESS_KEY is missing")) {
+        errorMessage = "Your Unsplash Access Key is missing. Please add UNSPLASH_ACCESS_KEY to your AI Studio Secrets (⚙️ gear icon -> Secrets).";
       } else if (errorMessage.startsWith("{")) {
         try {
           const parsed = JSON.parse(errorMessage);
@@ -122,12 +131,21 @@ export default function App() {
             </div>
             
             {hasApiKey !== null && (
-              <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${hasApiKey ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                {hasApiKey ? (
-                  <><CheckCircle2 className="w-3.5 h-3.5" /> API Key Configured</>
-                ) : (
-                  <><AlertCircle className="w-3.5 h-3.5" /> Missing API Key (Check Settings)</>
-                )}
+              <div className="flex flex-wrap gap-2">
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${hasApiKey ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                  {hasApiKey ? (
+                    <><CheckCircle2 className="w-3.5 h-3.5" /> Gemini API Configured</>
+                  ) : (
+                    <><AlertCircle className="w-3.5 h-3.5" /> Missing Gemini API Key</>
+                  )}
+                </div>
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${hasUnsplashKey ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                  {hasUnsplashKey ? (
+                    <><CheckCircle2 className="w-3.5 h-3.5" /> Unsplash API Configured</>
+                  ) : (
+                    <><AlertCircle className="w-3.5 h-3.5" /> Missing Unsplash API Key</>
+                  )}
+                </div>
               </div>
             )}
 
@@ -187,6 +205,34 @@ export default function App() {
               className="rounded-2xl"
             />
           </div>
+
+          {imageOptions.length > 0 && (
+            <div className="w-full max-w-[540px] space-y-3">
+              <p className="text-sm font-medium text-zinc-500 uppercase tracking-widest text-center">
+                Choose a background
+              </p>
+              <div className="grid grid-cols-3 gap-4">
+                {imageOptions.map((opt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setImageUrl(opt)}
+                    className={`relative aspect-[4/5] rounded-xl overflow-hidden border-2 transition-all ${
+                      imageUrl === opt 
+                        ? 'border-zinc-900 shadow-md scale-105 z-10' 
+                        : 'border-transparent hover:border-zinc-300 opacity-70 hover:opacity-100'
+                    }`}
+                  >
+                    <img 
+                      src={opt} 
+                      alt={`Option ${idx + 1}`} 
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           <button
             onClick={handleDownload}
