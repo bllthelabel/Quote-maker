@@ -1,0 +1,5 @@
+{
+  "name": "Editorial Quote Generator",
+  "description": "Generates minimalist, editorial-style Instagram quote posts with AI-generated backgrounds and sentiment analysis.",
+  "requestFramePermissions": []
+}
