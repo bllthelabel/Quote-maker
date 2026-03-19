@@ -32,6 +32,16 @@ export const QuotePreview = forwardRef<HTMLDivElement, QuotePreviewProps>(
       );
     };
 
+    // Dynamic font size based on quote length to ensure it fits the safe zone
+    const getFontSizeClass = (text: string) => {
+      const len = text.length;
+      if (len < 40) return "text-4xl sm:text-5xl md:text-6xl";
+      if (len < 85) return "text-3xl sm:text-4xl md:text-5xl";
+      if (len < 140) return "text-2xl sm:text-3xl md:text-4xl";
+      if (len < 200) return "text-xl sm:text-2xl md:text-3xl";
+      return "text-lg sm:text-xl md:text-2xl";
+    };
+
     return (
       <div
         ref={ref}
@@ -56,13 +66,16 @@ export const QuotePreview = forwardRef<HTMLDivElement, QuotePreviewProps>(
         {/* Subtle Overlay to ensure readability */}
         <div className="absolute inset-0 bg-black/20" />
 
-        {/* Content Container */}
-        <div className="absolute inset-0 p-8 flex flex-col z-10">
+        {/* Content Container - Increased vertical padding for IG safe zones */}
+        <div className="absolute inset-0 px-8 py-20 flex flex-col z-10">
           
           {/* Quote - Centered */}
-          <div className="flex-1 flex flex-col justify-center items-center w-full gap-4 md:gap-6 my-8 overflow-hidden text-center">
-            <div className="max-w-[90%]">
-              <p className="font-serif text-3xl sm:text-4xl md:text-5xl text-[#E2D06B] leading-[1.2] tracking-tight drop-shadow-md">
+          <div className="flex-1 flex flex-col justify-center items-center w-full gap-4 md:gap-6 overflow-hidden text-center">
+            <div className="max-w-[95%]">
+              <p className={cn(
+                "font-serif text-[#E2D06B] leading-[1.3] tracking-tight drop-shadow-md",
+                getFontSizeClass(quote || "")
+              )}>
                 {renderQuote()}
               </p>
             </div>

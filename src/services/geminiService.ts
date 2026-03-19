@@ -31,9 +31,9 @@ export async function analyzeQuote(quote: string) {
     },
   });
 
-  // Add a 15-second timeout
+  // Add a 30-second timeout
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error("Quote analysis timed out after 15 seconds.")), 15000);
+    setTimeout(() => reject(new Error("Quote analysis timed out after 30 seconds.")), 30000);
   });
 
   const response = await Promise.race([generatePromise, timeoutPromise]).catch(err => {
